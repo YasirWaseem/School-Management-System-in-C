@@ -47,7 +47,7 @@ int main(){
         return EXIT_FAILURE;
     }
 
-    conn = mysql_real_connect(conn, "127.0.0.1", "root", "yasir99@", "college", 3306, "NULL", 0);
+    conn = mysql_real_connect(conn, "127.0.0.1", "root", "password", "college", 3306, "NULL", 0);
     if (conn == NULL) {
         fprintf(stderr,"mysql_real_connect() failed\n");
         mysql_close(conn);
