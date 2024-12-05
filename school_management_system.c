@@ -1,5 +1,5 @@
 #include<stdio.h>
-
+#include <mysql.h>
 struct Student
 {
     char firstname[15];
@@ -28,16 +28,32 @@ struct Staff
     char gender;
 };
 
-void view_student();
-void add_student();
+void view_student(MYSQL *conn);
+void add_student(MYSQL *conn);
 
-void view_teacher();
-void add_teacher();
+void view_teacher(MYSQL *conn);
+void add_teacher(MYSQL *conn);
 
-void view_staff();
-void add_staff();
+void view_staff(MYSQL *conn);
+void add_staff(MYSQL *conn);
 
 int main(){
+
+    MYSQL *conn;
+    conn = mysql_init(NULL);
+
+    if(conn == NULL){
+        fprintf(stderr, "mysql_init() failed\n");
+        return EXIT_FAILURE;
+    }
+
+    conn = mysql_real_connect(conn, "127.0.0.1", "root", "yasir99@", "college", 3306, "NULL", 0);
+    if (conn == NULL) {
+        fprintf(stderr,"mysql_real_connect() failed\n");
+        mysql_close(conn);
+        return EXIT_FAILURE;
+    }
+
     int choice;
     while(1){
         printf("1. View Students\t\t");
@@ -56,30 +72,31 @@ int main(){
 
         case 0:
             printf("Exiting the program...");
+            mysql_close(conn);
             return 0;
     
         case 1:
-            view_student();
+            view_student(conn);
             break;
         
         case 2:
-            add_student();
+            add_student(conn);
             break;
 
         case 3:
-            view_teacher();
+            view_teacher(conn);
             break;
 
         case 4:
-            add_teacher();
+            add_teacher(conn);
             break;
 
         case 5:
-            view_staff();
+            view_staff(conn);
             break;
 
         case 6:
-            add_staff();
+            add_staff(conn);
             break;
 
         default:
@@ -91,11 +108,8 @@ int main(){
     return 0;
 }
 
-void add_student(){
+void add_student(MYSQL *conn){
     struct Student student;
-    FILE *fptr;
-
-    fptr = fopen("Students.txt", "a");
     
     printf("Enter Student's First name\n");
     scanf("%s", student.firstname);
@@ -115,40 +129,48 @@ void add_student(){
     printf("Enter Gender\n");
     scanf(" %c", &student.gender);
 
-    fprintf(fptr, "%s %s %d %lld %s %c", student.firstname, student.lastname, student.roll, student.uid, student.department, student.gender);
+    char query[255];
+    sprintf(query,"INSERT INTO student(firstname, lastname, roll, uid, department, gender)VALUES('%s', '%s', %d, %lld, '%s', '%c');", student.firstname, student.lastname, student.roll, student.uid, student.department, student.gender);
 
-    fclose(fptr);
-
+    if(mysql_query(conn, query)) {
+        fprintf(stderr, "Error: %s\n", mysql_error(conn));
+        return;
+    }
+    
     printf("Student added sucessfully. \n");
 
 }
 
-void view_student(){
-    struct Student student;
+void view_student(MYSQL *conn){
 
-    FILE *fptr;
-    fptr = fopen("Students.txt", "r");
-    if (fptr == NULL)
-    {
-        printf("Unable to open file!\n");
+    MYSQL_RES *res;
+    MYSQL_ROW row;
+
+    if (mysql_query(conn, "SELECT * FROM student")){
+        fprintf(stderr, "Error: %s\n", mysql_error(conn));
         return;
     }
 
-    while(fscanf(fptr, "%14s %14s %d %lld %14s %c", student.firstname, student.lastname, &student.roll, &student.uid, student.department, &student.gender) != EOF){
-        printf("Name: %s %s(%c)\n", student.firstname, student.lastname, student.gender);
-        printf("Roll: %d\n", student.roll);
-        printf("Aadhar Number: %lld\n", student.uid);
-        printf("Department: %s\n\n", student.department);
+    res = mysql_store_result(conn);
+    if(res == NULL){
+        fprintf(stderr, "Error: %s\n", mysql_error(conn));
+        return;
     }
 
-    fclose(fptr);
+    while(row = mysql_fetch_row(res)){
+        printf("Name: %s %s (%s)\n", row[0], row[1], row[5]);
+        printf("Roll: %s\n", row[2]);
+        printf("Aadhar Number: %s\n", row[3]);
+        printf("department: %s\n\n", row[4]);
+    }
+
+    mysql_free_result(res);
 
 }
 
-void add_teacher(){
+void add_teacher(MYSQL *conn){
     struct Teacher teacher;
-    FILE *fptr;
-    fptr = fopen("Teacher.txt", "a");
+    
 
     printf("Enter Teacher's First name\n");
     scanf("%s", teacher.firstname);
@@ -165,38 +187,47 @@ void add_teacher(){
     printf("Enter Gender\n");
     scanf(" %c", &teacher.gender);
 
-    fprintf(fptr, "%s, %s, %lld, %s, %c", teacher.firstname, teacher.lastname, teacher.uid, teacher.department, teacher.gender);
+    char query[255];
+    sprintf(query, "INSERT INTO teacher(firstname, lastname, uid, department, gender) VALUES('%s', '%s', %lld, '%s', '%c')", teacher.firstname, teacher.lastname, teacher.uid, teacher.department, teacher.gender);
 
-    fclose(fptr);
+    if(mysql_query(conn, query)){
+        fprintf(stderr, "Error: %s\n", mysql_error(conn));
+        return;
+    }
 
     printf("Teacher added sucessfully.\n");
 }
 
-void view_teacher(){
-    struct Teacher teacher;
-    FILE *fptr;
+void view_teacher(MYSQL *conn){
+    MYSQL_RES *res;
+    MYSQL_ROW row;
 
-    fptr = fopen("Teacher.txt","r");
-
-    if(fptr == NULL){
-        printf("Unable to open file!\n");
+    if(mysql_query(conn, "SELECT * FROM teacher")){
+        fprintf(stderr, "Error: %s\n", mysql_error(conn));
+        return;
     }
 
-    while(fscanf(fptr,"%14s %14s %lld %14s %c", teacher.firstname, teacher.lastname, &teacher.uid, teacher.department, teacher.gender) != EOF){
-        printf("Name: %s %s(%c)\n", teacher.firstname, teacher.lastname, teacher.gender);
-        printf("Aadhar Number: %lld\n", teacher.uid);
-        printf("Department: %s\n\n", teacher.department);
+    res = mysql_store_result(conn);
+    if(res == NULL){
+        fprintf(stderr, "Error: %s\n", mysql_error(conn));
+        return;
     }
-    fclose(fptr);
+
+    while((row = mysql_fetch_row(res))){
+        printf("Name: %s %s (%s)\n", row[0], row[1], row[4]);
+        printf("Aadhar Number: %s\n", row[2]);
+        printf("department: %s\n\n", row[3]);
+    }
+
+    mysql_free_result(res);
+
 }
 
-void add_staff(){
+void add_staff(MYSQL *conn){
 struct Staff staff;
-FILE *fptr;
-fptr = fopen("Staff.txt", "a");
 
 printf("Enter Staff's first name\n");
-scanf("%s", &staff.firstname);
+scanf("%s", staff.firstname);
 
 printf("Enter Staff's Last name\n");
 scanf("%s", staff.lastname);
@@ -208,24 +239,40 @@ printf("Enter Role\n");
 scanf("%s", &staff.work);
 
 printf("Enter Gender\n");
-scanf("% c", &staff.gender);
+scanf(" %c", &staff.gender);
 
-fprintf(fptr,"%s %s %lld %s %c", staff.firstname, staff.lastname, staff.uid, staff.work, staff.gender);
+char query[255];
+sprintf(query,"INSERT INTO staff(firstname, lastname, uid, work, gender)VALUES('%s', '%s', %lld, '%s', '%c')", staff.firstname, staff.lastname, staff.uid, staff.work, staff.gender);
 
-fclose(fptr);
+if(mysql_query(conn, query)){
+    fprintf(stderr,"Error: %s\n",mysql_error(conn));
+    return;
+}
 
 printf("Staff Added sucessfully.");
 }
 
-void view_staff(){
-    struct Staff staff;
-    FILE *fptr;
-    fptr = fopen("Staff.txt", "r");
+void view_staff(MYSQL *conn){
+    MYSQL_RES *res;
+    MYSQL_ROW row;
 
-    while(fscanf(fptr,"%14s %14s %lld %14s %c", staff.firstname, staff.lastname, &staff.uid, staff.work, &staff.gender) != EOF){
-        printf("Name: %s %s(%c)\n", staff.firstname, staff.lastname, staff.gender);
-        printf("Aadhar Number: %lld\n", staff.uid);
-        printf("Work: %s\n\n", staff.work);
+    if(mysql_query(conn, "SELECT * FROM staff")){
+        fprintf(stderr,"Error: %s\n", mysql_error(conn));
+        return;
     }
-    fclose(fptr);
+
+    res = mysql_store_result(conn);
+    if(res == NULL){
+        fprintf(stderr, "Error: %s\n", mysql_error(conn));
+        return;
+    }
+
+    while(row = mysql_fetch_row(res)){
+        printf("Name: %s %s(%c)\n", row[0], row[1], row[4]);
+        printf("Aadhar Number: %s\n", row[2]);
+        printf("Work: %s\n\n", row[3]);
+    }
+    
+    mysql_free_result(res);
+
 }
