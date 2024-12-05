@@ -1,23 +1,25 @@
 # School Management System
 
 ## Overview
-This is a School Management System implemented in C. It provides functionalities to manage records of students, teachers, and staff members using text files for persistent data management.
+This is a School Management System implemented in C and MySQL. It provides functionalities to manage records of students, teachers, and staff members using a relational database for persistent data management.
 
 ## Features
 - **Student Management**: Add and view student records.
 - **Teacher Management**: Add and view teacher records.
 - **Staff Management**: Add and view staff records.
-- **File Handling**: Uses text files for data storage to ensure simple read/write operations.
-
+- **Database**: Uses MySQL database for data storage.
+  
 ## Technologies Used
 - **Programming Language**: C
-- **Data Storage**: Text files
+- **Database**: MySQL
 - **Interface**: Command-Line Interface (CLI)
 
 ## Getting Started
 
 ### Prerequisites
 - C Compiler (e.g., GCC)
+- MySQL Database
+- MySQL Connector for C
 
 ### Installation
 1. Clone the repository:
@@ -29,10 +31,51 @@ This is a School Management System implemented in C. It provides functionalities
     cd School-Management-System-in-C
     ```
 
+### MySQL Database Setup
+Before running the program, set up the MySQL database using the following steps:
+
+1. Open MySQL and create the database:
+    ```sql
+    -- Create the 'college' database
+    CREATE DATABASE college;
+
+    -- Switch to the 'college' database
+    USE college;
+
+    -- Create the 'student' table
+    CREATE TABLE student (
+        firstname VARCHAR(15),
+        lastname VARCHAR(15),
+        roll INT,
+        uid BIGINT,
+        department VARCHAR(15),
+        gender CHAR(1)
+    );
+
+    -- Create the 'teacher' table
+    CREATE TABLE teacher (
+        firstname VARCHAR(15),
+        lastname VARCHAR(15),
+        uid BIGINT,
+        department VARCHAR(30),
+        gender CHAR(1)
+    );
+
+    -- Create the 'staff' table
+    CREATE TABLE staff (
+        firstname VARCHAR(15),
+        lastname VARCHAR(15),
+        uid BIGINT,
+        work VARCHAR(30),
+        gender CHAR(1)
+    );
+    ```
+2. Ensure that your MySQL server is running.
+
 ### Usage
 1. Compile the program:
     ```bash
-    gcc main.c -o school_management_system
+    gcc school_management_system.c -o school_management_system `mysql_config --cflags --libs`
     ```
 2. Run the program:
     ```bash
@@ -43,8 +86,8 @@ This is a School Management System implemented in C. It provides functionalities
 1. On running the program, you will be presented with a menu:
     ```plaintext
     1. View Students        2. Add Student
-    3. View Faculties       4. Add Faculties
-    5. View Staffs          6. Add Staffs
+    3. View Teachers        4. Add Teacher
+    5. View Staff           6. Add Staff
     0. Exit the program
 
     Enter Choice
@@ -52,11 +95,10 @@ This is a School Management System implemented in C. It provides functionalities
 2. Follow the prompts to add records, view records, and navigate through the menu.
 
 ### File Structure
-- `main.c`: The main source file containing the implementation of the system.
-- `Students.txt`: Text file for storing student records.
-- `Teacher.txt`: Text file for storing teacher records.
-- `Staff.txt`: Text file for storing staff records.
-
+- `school_management_system.c`: The main source file containing the implementation of the system.
+- `database_setup.sql`: SQL script for creating the database and tables.
+- `Makefile`: For compiling the project if desired (optional).
+  
 ## Contributing
 1. Fork the repository.
 2. Create your feature branch:
