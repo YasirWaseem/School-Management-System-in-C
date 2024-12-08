@@ -30,12 +30,18 @@ struct Staff
 
 void view_student(MYSQL *conn);
 void add_student(MYSQL *conn);
+void update_student(MYSQL *conn);
+void delete_student(MYSQL *conn);
 
 void view_teacher(MYSQL *conn);
 void add_teacher(MYSQL *conn);
+void update_teacher(MYSQL *conn);
+void delete_teacher(MYSQL *conn);
 
 void view_staff(MYSQL *conn);
 void add_staff(MYSQL *conn);
+void update_staff(MYSQL *conn);
+void delete_staff(MYSQL *conn);
 
 int main(){
 
@@ -47,7 +53,7 @@ int main(){
         return EXIT_FAILURE;
     }
 
-    conn = mysql_real_connect(conn, "127.0.0.1", "root", "password", "college", 3306, "NULL", 0);
+    conn = mysql_real_connect(conn, "127.0.0.1", "root", "yasir99@", "college", 3306, "NULL", 0);
     if (conn == NULL) {
         fprintf(stderr,"mysql_real_connect() failed\n");
         mysql_close(conn);
@@ -57,11 +63,17 @@ int main(){
     int choice;
     while(1){
         printf("1. View Students\t\t");
-        printf("2. Add Student\n");
-        printf("3. View Faculties\t\t");
-        printf("4. Add Faculties\n");
-        printf("5. View Staffs\t\t\t");
-        printf("6. Add Staffs\n");
+        printf("2. Add Student\t\t\t");
+        printf("3. Update Student\t\t\t");
+        printf("4. Delete Student\n");
+        printf("5. View Faculties\t\t");
+        printf("6. Add Faculties\t\t");
+        printf("7. Update Faculties\t\t");
+        printf("8. Delete Faculties\n");
+        printf("9. View Staffs\t\t\t");
+        printf("10. Add staffs\t\t\t");
+        printf("11. Update Staffs\t\t");
+        printf("12. Delete Staffs\n");
         printf("0. Exit the program\n");
 
         printf("Enter Choice\n");
@@ -84,19 +96,43 @@ int main(){
             break;
 
         case 3:
-            view_teacher(conn);
+            update_student(conn);
             break;
 
         case 4:
-            add_teacher(conn);
+            delete_student(conn);
             break;
 
         case 5:
-            view_staff(conn);
+            view_teacher(conn);
             break;
 
         case 6:
+            add_teacher(conn);
+            break;
+
+        case 7:
+            update_teacher(conn);
+            break;
+
+        case 8:
+            delete_teacher(conn);
+            break;
+
+        case 9:
+            view_staff(conn);
+            break;
+
+        case 10:
             add_staff(conn);
+            break;
+
+        case 11:
+            update_staff(conn);
+            break;
+
+        case 12:
+            delete_staff(conn);
             break;
 
         default:
@@ -168,6 +204,62 @@ void view_student(MYSQL *conn){
 
 }
 
+void update_student(MYSQL *conn){
+    struct Student student;
+
+    int old_roll;
+
+    printf("Enter roll number of a student to update: ");
+    scanf("%d", &old_roll);
+
+    printf("Enter Updated first name: ");
+    scanf("%s", student.firstname);
+
+    printf("Enter updated last name: ");
+    scanf("%s", student.lastname);
+
+    printf("Enter updated roll: ");
+    scanf("%d", &student.roll);
+
+    printf("Enter updated Aadhar Number: ");
+    scanf("%lld", &student.uid);
+
+    printf("Enter updated department: ");
+    scanf("%s", student.department);
+
+    printf("Enter updated gender: ");
+    scanf(" %c", &student.gender);
+
+    char query[255];
+    sprintf(query, "UPDATE student set firstname = '%s', lastname = '%s', roll = %d, uid = %d, department = '%s', gender = '%c' WHERE roll = %d", student.firstname, student.lastname, student.roll, student.uid, student.department, student.gender, old_roll);
+
+    if(mysql_query(conn, query)){
+        fprintf(stderr, "Error: %s\n", mysql_error(conn));
+        return;
+    }
+
+    printf("Student's details updated sucessfully\n");
+
+}
+
+void delete_student(MYSQL *conn){
+    int roll;
+
+    printf("Enter roll number of the student to delete: ");
+    scanf("%d", &roll);
+
+    char query[255];
+    sprintf(query, "DELETE FROM student WHERE roll =  %d", roll);
+
+    if(mysql_query(conn, query)){
+        fprintf(stderr,"Error: %s\n", mysql_error(conn));
+        return;
+    }
+
+    printf("Student record deleted successfully.\n");
+
+}
+
 void add_teacher(MYSQL *conn){
     struct Teacher teacher;
     
@@ -223,6 +315,59 @@ void view_teacher(MYSQL *conn){
 
 }
 
+void update_teacher(MYSQL *conn){
+    struct Teacher teacher;
+
+    int old_uid;
+
+    printf("Enter Aadhar number of a student to update: ");
+    scanf("%d", &old_uid);
+
+    printf("Enter Updated first name: ");
+    scanf("%s", teacher.firstname);
+
+    printf("Enter updated last name: ");
+    scanf("%s", teacher.lastname);
+
+    printf("Enter updated Aadhar Number: ");
+    scanf("%lld", &teacher.uid);
+
+    printf("Enter updated department: ");
+    scanf("%s", teacher.department);
+
+    printf("Enter updated gender: ");
+    scanf(" %c", &teacher.gender);
+
+    char query[255];
+    sprintf(query, "UPDATE teacher set firstname = '%s', lastname = '%s', uid = %d, department = '%s', gender = '%c' WHERE uid = %d", teacher.firstname, teacher.lastname, teacher.uid, teacher.department, teacher.gender, old_uid);
+
+    if(mysql_query(conn, query)){
+        fprintf(stderr, "Error: %s\n", mysql_error(conn));
+        return;
+    }
+
+    printf("Teacher's details updated sucessfully\n");
+
+}
+
+void delete_teacher(MYSQL *conn){
+    long long int uid;
+
+    printf("Enter Aadhar number of the Teacher to delete: ");
+    scanf("%lld", &uid);
+
+    char query[255];
+    sprintf(query, "DELETE FROM teacher WHERE uid =  %lld", uid);
+
+    if(mysql_query(conn, query)){
+        fprintf(stderr,"Error: %s\n", mysql_error(conn));
+        return;
+    }
+
+    printf("Teacher record deleted successfully.\n");
+
+}
+
 void add_staff(MYSQL *conn){
 struct Staff staff;
 
@@ -274,5 +419,58 @@ void view_staff(MYSQL *conn){
     }
     
     mysql_free_result(res);
+
+}
+
+void update_staff(MYSQL *conn){
+    struct Staff staff;
+
+    int old_uid;
+
+    printf("Enter Aadhar number of a student to update: ");
+    scanf("%d", &old_uid);
+
+    printf("Enter Updated first name: ");
+    scanf("%s", staff.firstname);
+
+    printf("Enter updated last name: ");
+    scanf("%s", staff.lastname);
+
+    printf("Enter updated Aadhar Number: ");
+    scanf("%lld", &staff.uid);
+
+    printf("Enter updated role: ");
+    scanf("%s", staff.work);
+
+    printf("Enter updated gender: ");
+    scanf(" %c", &staff.gender);
+
+    char query[255];
+    sprintf(query, "UPDATE staff set firstname = '%s', lastname = '%s', uid = %d, work = '%s', gender = '%c' WHERE uid = %d", staff.firstname, staff.lastname, staff.uid, staff.work, staff.gender, old_uid);
+
+    if(mysql_query(conn, query)){
+        fprintf(stderr, "Error: %s\n", mysql_error(conn));
+        return;
+    }
+
+    printf("Teacher's details updated sucessfully\n");
+
+}
+
+void delete_staff(MYSQL *conn){
+    long long int uid;
+
+    printf("Enter Aadhar number of the Staff to delete: ");
+    scanf("%lld", &uid);
+
+    char query[255];
+    sprintf(query, "DELETE FROM staff WHERE uid =  %lld", uid);
+
+    if(mysql_query(conn, query)){
+        fprintf(stderr,"Error: %s\n", mysql_error(conn));
+        return;
+    }
+
+    printf("Staff record deleted successfully.\n");
 
 }
